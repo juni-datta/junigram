@@ -1,10 +1,12 @@
-package io.muzoo.ooc.hw3.security;
+package com.example.demo.security;
+
+import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.sql.SQLException;
-import java.util.Objects;
 
+@Service
 public class SecurityService {
 
     private UserService userService;
