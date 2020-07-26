@@ -1,8 +1,5 @@
 <template>
   <div class="container-v">
-    <div id="login">
-        <h1>Welcome {{this.$parent.currentUser}}</h1>
-    </div>
     <v-container>
       <v-card class="card-form">
         <v-card-text>
@@ -67,7 +64,6 @@
     name: "Instagram",
     data() {
       return {
-        info: '',
         caption: '',
         src: '',
         cards: [
@@ -83,16 +79,16 @@
               { comment: 'He is usually quite cheerful in class.' }
             ]
           },
-          // {
-          //   comment: '',
-          //   caption: 'Favorite road trips',
-          //   liked: false,
-          //   src: 'http://wfiles.brothersoft.com/t/three-penguin_116275-800x600.jpg',
-          //   comments: [
-          //     { comment: 'Penguin is a friendly, confident student who is not afraid to participate in class or engage one-on-one with the teacher. He is attentive and well behaved in class and follows instructions well. Penguin has exhibited a vital understanding of the Penguin material we have covered in class. He speaks in clear sentences. His reading skills are very good for his level. His writing skills are excellent for his level. I enjoy having Penguin in my class.' },
-          //     { comment: 'He is usually quite cheerful in class.' }
-          //   ]
-          // },
+          {
+            comment: '',
+            caption: 'Favorite road trips',
+            liked: false,
+            src: 'http://wfiles.brothersoft.com/t/three-penguin_116275-800x600.jpg',
+            comments: [
+              { comment: 'Penguin is a friendly, confident student who is not afraid to participate in class or engage one-on-one with the teacher. He is attentive and well behaved in class and follows instructions well. Penguin has exhibited a vital understanding of the Penguin material we have covered in class. He speaks in clear sentences. His reading skills are very good for his level. His writing skills are excellent for his level. I enjoy having Penguin in my class.' },
+              { comment: 'He is usually quite cheerful in class.' }
+            ]
+          },
           {
             comment: '',
             caption: 'Best airlines',
@@ -108,15 +104,7 @@
       }
     },
     mounted() {
-
-      if (this.$parent.currentUser == ""){
-        this.$router.push('/login');
-      }
-      else{
-        window.console.log(this.$parent.currentUser)
-      }
-
-
+      // Load local storage.
       const data = JSON.parse(localStorage.getItem('cards'));
       if (data) {
         this.cards = data;

@@ -1,5 +1,6 @@
 package com.example.demo.security;
 
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import java.sql.*;
@@ -12,20 +13,36 @@ public class UserService {
     Connection conn;
     Statement statement;
     public UserService() throws SQLException, ClassNotFoundException {
-        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/ooc_hw3_db", "nessie", "howareyou1");
+        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/junigram", "nessie", "howareyou1");
         statement = conn.createStatement();
     }
 
 
     public boolean checkIfUserExists(String username) throws SQLException {
+
         String sql = String.format("SELECT username FROM users WHERE username = '%s'", username);
         ResultSet result = statement.executeQuery(sql);
         return result.next();
     }
 
     public int addUser(String username, String password) throws SQLException {
-        String sql = String.format("INSERT INTO users VALUES (\'%s\', \'%s\')", username, password);
-        return statement.executeUpdate(sql);
+        if (checkIfUserExists(username)){
+            return -1;
+        }
+
+        try {
+            String salt = BCrypt.gensalt();
+            String hashed_password = BCrypt.hashpw(password, salt);
+            String sql = String.format("INSERT INTO users VALUES (\'%s\', \'%s\')", username, hashed_password);
+            statement.executeUpdate(sql);
+            return 1;
+        }
+
+        catch (Exception e){
+            return 0;
+        }
+
+
     }
 
     public int removeUser(String username) throws SQLException {
@@ -39,11 +56,13 @@ public class UserService {
     }
 
     public int changePassword(String username, String newPassword) throws SQLException {
-        String sql = String.format("UPDATE users SET password = '%s' WHERE username = '%s'", newPassword, username);
+        String salt = BCrypt.gensalt();
+        String hashed_password = BCrypt.hashpw(newPassword, salt);
+        String sql = String.format("UPDATE users SET password = '%s' WHERE username = '%s'", hashed_password, username);
         return statement.executeUpdate(sql);
     }
 
-    public String getPassword(String username) throws SQLException {
+    public String getHashedPassword(String username) throws SQLException {
         String sql = String.format("SELECT * FROM users WHERE username = '%s'", username);
         ResultSet result = statement.executeQuery(sql);
         if (result.next()){
@@ -72,10 +91,10 @@ public class UserService {
         if(result.next()){
             System.out.println(sql);
             String dbUsername = result.getString("username");
-            String dbPassword = result.getString("password");
+            String dbHashedPassword = result.getString("password");
             System.out.println(dbUsername + " " + username);
-            System.out.println(dbPassword + " " + password);
-            return username.equals(dbUsername) && password.equals(dbPassword);
+            System.out.println(dbHashedPassword + " " + password);
+            return username.equals(dbUsername) && BCrypt.checkpw(password, dbHashedPassword);
         }
         else{
             return false;

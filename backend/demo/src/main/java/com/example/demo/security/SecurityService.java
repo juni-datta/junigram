@@ -1,5 +1,6 @@
 package com.example.demo.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -9,6 +10,7 @@ import java.sql.SQLException;
 @Service
 public class SecurityService {
 
+    @Autowired
     private UserService userService;
 
     public void setUserService(UserService userService){
@@ -40,6 +42,10 @@ public class SecurityService {
             return false;
         }
 
+    }
+
+    public boolean login(String username, String password) throws SQLException {
+        return userService.isValidCredentials(username, password);
     }
 
 
