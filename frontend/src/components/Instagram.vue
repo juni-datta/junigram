@@ -22,12 +22,14 @@
       </v-card>
       <v-row v-for="card in cards" :key="card.id">
         <v-card class="mx-auto">
+          <h1> {{card.user}} </h1>
           <v-img :src="card.src" class="image">
           </v-img>
-          <v-card-text class="card-caption">{{ card.caption }}
+          <v-card-text class="card-caption"><b>{{ card.caption }}</b>
             <v-card-actions>
               <div class="flex-grow-1"></div>
-              <v-btn v-blur v-if=card.liked icon color="pink" @click="likeImage(card)">
+              <label> {{card.like_string}} </label>
+              <v-btn v-blur v-if=temp icon color="pink" @click="likeImage(card)">
                 <v-icon>mdi-heart</v-icon>
               </v-btn>
               <v-btn v-blur v-else icon @click="likeImage(card)">
@@ -41,7 +43,7 @@
           <ul class="comment-list">
             <li v-for="com in card.comments" :key="com.comment">
               <div class="view">
-                <label>{{ com.comment }}</label>
+                <label><b>{{com.user}}:</b> {{ com.comment }}</label>
                 <v-btn class="destroy" icon @click="destroyComment(card, com)">
                   <v-icon>mdi-close</v-icon>
                 </v-btn>
@@ -67,95 +69,135 @@
     name: "Instagram",
     data() {
       return {
+        temp: true,
         info: '',
         caption: '',
         src: '',
-        cards: [
-          {
-            comment: '',
-            caption: 'Pre-fab homes',
-            liked: true,
-            src: 'https://thumbs-prod.si-cdn.com/pJr3bbcye9mBiE910wovzd0Yakk=/800x600/filters:no_upscale()/https://public-media.si-cdn.com/filer/96/ea/96ea3332-4453-4baf-9e8a-b187cdbe3eaf/penguin_42-55455098.jpg',
-            comments: [
-              { comment: 'Penguin is a friendly, confident student who is not afraid to participate in class or engage one-on-one with the teacher. He is attentive and well behaved in class and follows instructions well. Penguin has exhibited a vital understanding of the Penguin material we have covered in class. He speaks in clear sentences. His reading skills are very good for his level. His writing skills are excellent for his level. I enjoy having Penguin in my class.' },
-              { comment: 'When he is confident about the answer.' },
-              { comment: 'He loves participating in class.' },
-              { comment: 'He is usually quite cheerful in class.' }
-            ]
-          },
-          // {
-          //   comment: '',
-          //   caption: 'Favorite road trips',
-          //   liked: false,
-          //   src: 'http://wfiles.brothersoft.com/t/three-penguin_116275-800x600.jpg',
-          //   comments: [
-          //     { comment: 'Penguin is a friendly, confident student who is not afraid to participate in class or engage one-on-one with the teacher. He is attentive and well behaved in class and follows instructions well. Penguin has exhibited a vital understanding of the Penguin material we have covered in class. He speaks in clear sentences. His reading skills are very good for his level. His writing skills are excellent for his level. I enjoy having Penguin in my class.' },
-          //     { comment: 'He is usually quite cheerful in class.' }
-          //   ]
-          // },
-          {
-            comment: '',
-            caption: 'Best airlines',
-            liked: false,
-            src: 'https://thumbs-prod.si-cdn.com/6IcdfzLNu2NH5QwSZjNRvhrHXZk=/800x600/filters:no_upscale()/https://public-media.si-cdn.com/filer/7b/80/7b80472f-3383-4946-a38c-c01b15a087b2/42-67137516.jpg',
-            comments: [
-              { comment: 'Penguin is a friendly, confident student who is not afraid to participate in class or engage one-on-one with the teacher. He is attentive and well behaved in class and follows instructions well. Penguin has exhibited a vital understanding of the Penguin material we have covered in class. He speaks in clear sentences. His reading skills are very good for his level. His writing skills are excellent for his level. I enjoy having Penguin in my class.' },
-              { comment: 'When he is confident about the answer.' },
-              { comment: 'He loves participating in class.' }
-            ]
-          },
-        ],
+        cards: [],
       }
     },
     mounted() {
 
-      if (this.$parent.currentUser == ""){
+      if (this.$parent.currentUser == null){
         this.$router.push('/login');
+        window.console.log("should redirect to login")
       }
       else{
-        window.console.log(this.$parent.currentUser)
-      }
+        window.console.log("currentUser: " + this.$parent.currentUser)
+        this.axios.get('http://localhost:9090/post/get_posts')
+                .then(res => {
+                  window.console.log(res.data[0])
+                  this.cards = res.data
+                  }
+                  )
+                .catch(function (error) {window.console.log(error)});
 
+        }
 
-      const data = JSON.parse(localStorage.getItem('cards'));
-      if (data) {
-        this.cards = data;
-      }
+      
     },
     methods: {
       submit() {
-        // this.cards.push({
-        //   caption: this.caption,
-        //   src: this.src,
-        //   liked: false,
-        //   comments: []
-        // });
-        // this.caption = '';
-        // this.src = '';
-        // localStorage.setItem('cards', JSON.stringify(this.cards))
+        this.axios.post('http://localhost:9090/post/create_post', {
+          user: this.$parent.currentUser,
+          text: this.caption,
+          src: this.src
+          },{})
+         .then(res => {
+          window.console.log(res.data)
+          this.axios.get('http://localhost:9090/post/get_posts')
+          .then(res => {
+          window.console.log(res.data[0])
+          this.cards = res.data
+          }
+          )
+        .catch(function (error) {window.console.log(error)});
+          });
 
-        this.axios.get("http://localhost:9090/test/string").then((response) => {
-            window.console.log(response)
-          })
+        this.caption = ''
+        this.src = ''
+
+
       },
       destroyCard(card) {
-        const index = this.cards.indexOf(card);
-        this.cards.splice(index,1);
+
+        //remove from back end
+        this.axios.post('http://localhost:9090/post/delete_post', {
+          id: card.id,
+          username: this.$parent.currentUser
+        })
+        .then(res => {
+          window.console.log(res.data)
+          this.axios.get('http://localhost:9090/post/get_posts')
+          .then(res => {
+          window.console.log(res.data[0])
+          this.cards = res.data
+          }
+          )
+        .catch(function (error) {window.console.log(error)});
+          });
+
       },
       likeImage(card) {
-        this.cards[this.cards.indexOf(card)].liked = this.cards[this.cards.indexOf(card)].liked === false;
-        localStorage.setItem('cards', JSON.stringify(this.cards))
+        this.axios.post('http://localhost:9090/post/like_post', {
+        username: this.$parent.currentUser,
+        id: card.id,
+        })
+        .then(res => {
+          window.console.log(res.data)
+          this.axios.get('http://localhost:9090/post/get_posts')
+          .then(res => {
+          window.console.log(res.data[0])
+          this.cards = res.data
+          }
+          )
+        .catch(function (error) {window.console.log(error)});
+          });
+
       },
-      destroyComment(card, comment) {
-        const index = this.cards[this.cards.indexOf(card)].comments.indexOf(comment);
-        this.cards[this.cards.indexOf(card)].comments.splice(index,1)
+      destroyComment(card, com) {
+        window.console.log(com.id)
+        this.axios.post('http://localhost:9090/post/delete_comment', {
+          id: com.id,
+          username: this.$parent.currentUser
+        })
+        .then(res => {
+          window.console.log(res.data)
+          this.axios.get('http://localhost:9090/post/get_posts')
+          .then(res => {
+          window.console.log(res.data[0])
+          this.cards = res.data
+          }
+          )
+        .catch(function (error) {window.console.log(error)});
+          });
+
+          
+        
+
+
+    
       },
       addComment(card) {
-        this.cards[this.cards.indexOf(card)].comments.push({
-          comment: this.cards[this.cards.indexOf(card)].comment
-        });
+        window.console.log(card.id)
+        this.axios.post('http://localhost:9090/post/comment_post', {
+        username: this.$parent.currentUser,
+        id: card.id,
+        comment: this.cards[this.cards.indexOf(card)].comment
+        })
+        .then(res => {
+          window.console.log(res.data)
+          this.axios.get('http://localhost:9090/post/get_posts')
+          .then(res => {
+          window.console.log(res.data[0])
+          this.cards = res.data
+          }
+          )
+        .catch(function (error) {window.console.log(error)});
+          });
+
+      
         this.cards[this.cards.indexOf(card)].comment = '';
-        localStorage.setItem('cards', JSON.stringify(this.cards))
       }
     }
   }

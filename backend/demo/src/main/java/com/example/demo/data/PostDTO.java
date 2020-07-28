@@ -1,7 +1,5 @@
 package com.example.demo.data;
 
-import java.util.List;
-
 public class PostDTO {
 
     //user who created this post
@@ -9,7 +7,7 @@ public class PostDTO {
     //post text
     private String text;
     //image URL
-    private String URL;
+    private String src;
 
     public String getUser() {
         return user;
@@ -27,12 +25,12 @@ public class PostDTO {
         this.text = text;
     }
 
-    public String getURL() {
-        return URL;
+    public String getSrc() {
+        return src;
     }
 
-    public void setURL(String URL) {
-        this.URL = URL;
+    public void setSrc(String src) {
+        this.src = src;
     }
 
 

@@ -20,7 +20,7 @@
         name: 'App',
         data() {
             return {
-                currentUser: ""
+                currentUser: null
                 }
             }
         }
